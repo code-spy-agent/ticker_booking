@@ -8,6 +8,8 @@ import MovieDetails from './components/MovieDetails';
 import TheaterSeating from './components/TheaterSeating';
 import BookingPage from './components/BookingPage';
 import GenrePage from './components/GenrePage';
+import Login from './components/login';
+import Signup from './components/signup';
 import './App.css';
 
 function App() {
@@ -19,10 +21,12 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/movies" element={<MovieList />} />
-            <Route path="/movie/:id" element={<MovieDetails />} />
+            <Route path="/movies/:id" element={<MovieDetails />} />
             <Route path="/seating/:id" element={<TheaterSeating />} />
             <Route path="/booking/:id" element={<BookingPage />} />
             <Route path="/genre/:genre" element={<GenrePage />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
           </Routes>
         </main>
         <Footer />
