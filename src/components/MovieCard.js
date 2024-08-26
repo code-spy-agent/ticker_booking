@@ -1,6 +1,7 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
-function MovieCard({ movie, onShowDetails }) {
+function MovieCard({ movie }) {
   return (
     <div className="col-md-6 col-lg-4">
       <div className="movie-card h-100">
@@ -10,7 +11,9 @@ function MovieCard({ movie, onShowDetails }) {
           <p className="card-text mb-1"><i className="fas fa-film me-2"></i>{movie.Genre}</p>
           <p className="card-text mb-1"><i className="fas fa-user me-2"></i>{movie.Director}</p>
           <p className="card-text mb-3"><i className="fas fa-star me-2 rating"></i>{movie.imdbRating}</p>
-          <button className="btn btn-details mt-auto" onClick={onShowDetails}>More Details</button>
+          <Link to={`/movies/${movie.imdbID}`} className="btn btn-details mt-auto">
+            More Details
+          </Link>
         </div>
       </div>
     </div>

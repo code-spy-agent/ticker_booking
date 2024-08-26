@@ -1,20 +1,38 @@
 import React from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import movieData from '../data/movies.json';
 
-function MovieDetail() {
+function MovieDetails() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const movie = movieData.find(m => m.imdbID === id);
 
+  console.log("Movie ID:", id);
+  console.log("Found movie:", movie);
+
   if (!movie) {
-    return <div className="container mt-5">Movie not found</div>;
+    return (
+      <div className="container mt-5">
+        <h2>Movie not found</h2>
+        <p>We couldn't find a movie with ID: {id}</p>
+        <p>Available movie IDs: {movieData.map(m => m.imdbID).join(', ')}</p>
+      </div>
+    );
   }
+
+  const handleBookTickets = () => {
+    navigate(`/booking/${id}`);
+  };
 
   return (
     <div className="container mt-5">
       <div className="row">
         <div className="col-md-4">
-          <img src={movie.Images[0]} alt={movie.Title} className="img-fluid" />
+          {movie.Images && movie.Images[0] ? (
+            <img src={movie.Images[0]} alt={movie.Title} className="img-fluid" />
+          ) : (
+            <p>No image available</p>
+          )}
         </div>
         <div className="col-md-8">
           <h1>{movie.Title}</h1>
@@ -34,16 +52,21 @@ function MovieDetail() {
           <p><strong>IMDb Votes:</strong> {movie.imdbVotes}</p>
         </div>
       </div>
-      <div className="row mt-5">
-        <h2>Images</h2>
-        {movie.Images.map((image, index) => (
-          <div key={index} className="col-md-4 mb-3">
-            <img src={image} alt={`${movie.Title} ${index + 1}`} className="img-fluid" />
-          </div>
-        ))}
-      </div>
+      {movie.Images && movie.Images.length > 0 && (
+        <div className="row mt-5">
+          <h2>Images</h2>
+          {movie.Images.map((image, index) => (
+            <div key={index} className="col-md-4 mb-3">
+              <img src={image} alt={`${movie.Title} ${index + 1}`} className="img-fluid" />
+            </div>
+          ))}
+        </div>
+      )}
+      <button onClick={handleBookTickets} className="btn btn-primary mt-3">
+        Book Tickets
+      </button>
     </div>
   );
 }
 
-export default MovieDetail;
+export default MovieDetails;
