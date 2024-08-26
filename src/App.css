@@ -1,38 +1,125 @@
-.App {
-  text-align: center;
+body {
+  background-color: #f0f2f5;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.movie-card {
+  background-color: #ffffff;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+.movie-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(0,0,0,0.2);
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+.movie-poster {
+  height: 400px;
+  object-fit: cover;
+}
+
+.card-body {
+  padding: 1.5rem;
+}
+
+.card-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.card-text {
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+.btn-details {
+  background-color: #007bff;
+  border: none;
+  border-radius: 20px;
+  padding: 0.5rem 1.5rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-details:hover {
+  background-color: #0056b3;
+}
+
+.modal-content {
+  border-radius: 15px;
+}
+
+.modal-header {
+  border-bottom: none;
+  padding: 1.5rem 1.5rem 0.5rem;
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+.modal-title {
+  font-weight: 600;
+}
+
+.rating {
+  font-size: 1.2rem;
+  color: #ffc107;
+}
+
+.movie-images {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 1rem;
 }
 
-.App-link {
-  color: #61dafb;
+.movie-images img {
+  width: calc(33.333% - 7px);
+  object-fit: cover;
+  border-radius: 5px;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.movie-carousel .carousel-item img {
+  height: 70vh;
+  object-fit: cover;
+}
+
+.card {
+  transition: transform 0.3s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+.home-container {
+  background-color: #f8f9fa;
+}
+
+.featured-movie .card {
+  overflow: hidden;
+}
+
+.featured-movie img {
+  height: 100%;
+  object-fit: cover;
+}
+
+.genre-cloud .btn {
+  transition: all 0.3s;
+}
+
+.genre-cloud .btn:hover {
+  transform: scale(1.1);
+}
+
+.movie-stats h3 {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #007bff;
 }
