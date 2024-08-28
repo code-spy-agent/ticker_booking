@@ -3,9 +3,10 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import QRCode from 'qrcode';
-import movieData from '../data/movies.json';
+import useMovies from '../hooks/useMovies';
 import TicketPDF from './TicketPDF';
 import TheaterSeating from './TheaterSeating';
+import LoadingSpinner from './LoadingSpinner';
 
 const SEAT_PRICE = 10;
 const GST_RATE = 0.18; // 18% GST
@@ -28,6 +29,7 @@ function BookingPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const { movies, loading, error } = useMovies();
   const [movie, setMovie] = useState(null);
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [selectedCombo, setSelectedCombo] = useState(null);
@@ -36,19 +38,23 @@ function BookingPage() {
   const [qrCodeUrl, setQrCodeUrl] = useState('');
   const [selectedShowtime, setSelectedShowtime] = useState('');
   const [address] = useState('123 Movie Theater St, Cityville, ST 12345');
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const foundMovie = movieData.find(m => m.imdbID === id);
-    if (foundMovie) {
-      setMovie(foundMovie);
-    } else {
-      navigate('/');
+    if (!loading && !error) {
+      const foundMovie = movies.find(m => m.id === parseInt(id));
+      if (foundMovie) {
+        setMovie(foundMovie);
+      } else {
+        navigate('/');
+      }
     }
-  }, [id, navigate]);
+  }, [id, navigate, movies, loading, error]);
 
   useEffect(() => {
-    if (location.state?.selectedSeats) {
+    if (location.state?.selectedSeats && location.state?.selectedShowtime) {
       setSelectedSeats(location.state.selectedSeats);
+      setSelectedShowtime(location.state.selectedShowtime);
       setStep(3); // Move to snack selection after seat selection
     }
   }, [location.state]);
@@ -61,7 +67,7 @@ function BookingPage() {
 
   const handleShowtimeSelection = (showtime) => {
     setSelectedShowtime(showtime);
-    setStep(2);
+    navigate(`/seating/${id}`, { state: { selectedShowtime: showtime } });
   };
 
   const handleComboSelection = (comboId) => {
@@ -89,10 +95,15 @@ function BookingPage() {
     return code;
   };
 
-  const handlePayment = () => {
+  const handlePayment = async () => {
     const code = generateBookingCode();
-    alert(`Payment processed successfully! Your booking code is: ${code}`);
-    setStep(5);
+    try {
+      await saveBookingToDatabase();
+      alert(`Payment processed successfully! Your booking code is: ${code}`);
+      setStep(5);
+    } catch (error) {
+      alert('Failed to process payment. Please try again.');
+    }
   };
 
   const renderShowtimeSelection = () => (
@@ -145,12 +156,12 @@ function BookingPage() {
         <h3 className="mb-4">Booking Summary</h3>
         <div className="row">
           <div className="col-md-4">
-            {movie && movie.Images && movie.Images.length > 0 && (
-              <img src={movie.Images[0]} alt={movie.Title} className="img-fluid mb-3" />
+            {movie && movie.images && movie.images.length > 0 && (
+              <img src={movie.images[0]} alt={movie.title} className="img-fluid mb-3" />
             )}
           </div>
           <div className="col-md-8">
-            <p><strong>Movie:</strong> {movie?.Title}</p>
+            <p><strong>Movie:</strong> {movie?.title}</p>
             <p><strong>Showtime:</strong> {selectedShowtime}</p>
             <p><strong>Seats:</strong> {selectedSeats.join(', ')}</p>
             <p><strong>Snack Combo:</strong> {SNACK_COMBOS.find(c => c.id === selectedCombo)?.name || 'None'}</p>
@@ -206,13 +217,89 @@ function BookingPage() {
     </div>
   );
 
+  const saveBookingToDatabase = async () => {
+    try {
+      const bookingData = {
+        movieId: id,
+        movieTitle: movie.title,
+        showtime: selectedShowtime,
+        seats: selectedSeats,
+        snackCombo: SNACK_COMBOS.find(combo => combo.id === selectedCombo),
+        totalPrice: calculateTotal().total,
+        bookingCode: bookingCode,
+        userId: 'user_id_here', // Replace with actual user ID when authentication is implemented
+        bookingDate: new Date().toISOString()
+      };
+
+      const response = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          // Add authorization header if needed
+        },
+        body: JSON.stringify(bookingData)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save booking');
+      }
+
+      const result = await response.json();
+      console.log('Booking saved:', result);
+      // You can add additional logic here, such as showing a success message
+    } catch (error) {
+      console.error('Error saving booking:', error);
+      // Handle the error, e.g., show an error message to the user
+    }
+  };
+
+  const handleConfirmBooking = () => {
+    const newBookingCode = generateBookingCode();
+    setBookingCode(newBookingCode);
+    saveBookingToDatabase(); // Add this line
+    setStep(5);
+  };
+
+  useEffect(() => {
+    // Simulating an API call or data loading
+    const fetchData = async () => {
+      try {
+        // Your data fetching logic here
+        // For example: await fetchBookingData();
+        
+        // Simulating a delay
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  if (isLoading) {
+    return <LoadingSpinner />;
+  }
+
   if (!movie) return <div>Loading...</div>;
 
   return (
     <div className="container mt-5">
-      <h2 className="text-center mb-4">{movie.Title} - Booking</h2>
+      <h2 className="text-center mb-4">{movie.title} - Booking</h2>
       {step === 1 && renderShowtimeSelection()}
-      {step === 2 && <TheaterSeating movieId={id} selectedShowtime={selectedShowtime} />}
+      {step === 2 && (
+        <TheaterSeating
+          movieId={id}
+          selectedShowtime={selectedShowtime}
+          onContinue={(seats) => {
+            setSelectedSeats(seats);
+            setStep(3);
+          }}
+        />
+      )}
       {step === 3 && renderSnackSelection()}
       {step === 4 && renderBookingSummary()}
       {step === 5 && renderBookingConfirmation()}

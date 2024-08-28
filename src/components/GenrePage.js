@@ -1,28 +1,32 @@
 import React, { useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import movieData from '../data/movies.json';
+import useMovies from '../hooks/useMovies';
 
 function GenrePage() {
   const { genre } = useParams();
+  const { movies, loading, error } = useMovies();
 
   const genreMovies = useMemo(() => 
-    movieData.filter(movie => movie.Genre.includes(genre))
-      .sort((a, b) => b.imdbRating - a.imdbRating),
-    [genre]
+    movies.filter(movie => movie.genre.includes(genre))
+      .sort((a, b) => b.imdb_rating - a.imdb_rating),
+    [movies, genre]
   );
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
 
   return (
     <div className="container mt-5">
       <h1 className="mb-4">{genre} Movies</h1>
       <div className="row">
         {genreMovies.map(movie => (
-          <div key={movie.imdbID} className="col-md-3 mb-4">
+          <div key={movie.id} className="col-md-3 mb-4">
             <div className="card h-100 shadow-sm">
-              <img src={movie.Images[0]} className="card-img-top" alt={movie.Title} style={{ height: '300px', objectFit: 'cover' }} />
+              <img src={movie.images[0] || movie.image_url} className="card-img-top" alt={movie.title} style={{ height: '300px', objectFit: 'cover' }} />
               <div className="card-body d-flex flex-column">
-                <h5 className="card-title">{movie.Title}</h5>
-                <p className="card-text">IMDb Rating: {movie.imdbRating}</p>
-                <Link to={`/movie/${movie.imdbID}`} className="btn btn-primary mt-auto">View Details</Link>
+                <h5 className="card-title">{movie.title}</h5>
+                <p className="card-text">IMDb Rating: {movie.imdb_rating}</p>
+                <Link to={`/movie/${movie.id}`} className="btn btn-primary mt-auto">View Details</Link>
               </div>
             </div>
           </div>

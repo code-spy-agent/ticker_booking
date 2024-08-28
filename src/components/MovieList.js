@@ -1,14 +1,20 @@
 import React from 'react';
 import MovieCard from './MovieCard';
-import movieData from '../data/movies.json';
+import useMovies from '../hooks/useMovies';
+import LoadingSpinner from './LoadingSpinner';
 
 function MovieList() {
+  const { movies, loading, error } = useMovies();
+
+  if (loading) return <LoadingSpinner />;
+  if (error) return <div>Error: {error}</div>;
+
   return (
     <div className="container my-5">
       <div className="row g-4">
-        {movieData.map(movie => (
+        {movies.map(movie => (
           <MovieCard 
-            key={movie.imdbID} 
+            key={movie.id} 
             movie={movie} 
           />
         ))}

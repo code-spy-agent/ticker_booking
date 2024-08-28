@@ -1,58 +1,63 @@
 import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Carousel } from 'react-bootstrap';
-import movieData from '../data/movies.json';
+import useMovies from '../hooks/useMovies';
+import LoadingSpinner from './LoadingSpinner';
 
 function Home() {
-  // Select top 5 rated movies for the carousel
+  const { movies, loading, error } = useMovies();
+
   const topMovies = useMemo(() => 
-    movieData
-      .sort((a, b) => b.imdbRating - a.imdbRating)
+    (movies || [])
+      .sort((a, b) => b.imdb_rating - a.imdb_rating)
       .slice(0, 5),
-    []
+    [movies]
   );
 
-  // Extract unique genres and categorize movies
   const genreCategories = useMemo(() => {
     const categories = {};
-    movieData.forEach(movie => {
-      const genres = movie.Genre.split(', ');
-      genres.forEach(genre => {
-        if (!categories[genre]) {
-          categories[genre] = [];
-        }
-        categories[genre].push(movie);
-      });
+    (movies || []).forEach(movie => {
+      if (movie && movie.genre) {
+        const genres = movie.genre.split(', ');
+        genres.forEach(genre => {
+          if (!categories[genre]) {
+            categories[genre] = [];
+          }
+          categories[genre].push(movie);
+        });
+      }
     });
     return categories;
-  }, []);
+  }, [movies]);
 
-  // Select top 4 movies for each genre
   const topGenreMovies = useMemo(() => {
     const top = {};
     Object.keys(genreCategories).forEach(genre => {
       top[genre] = genreCategories[genre]
-        .sort((a, b) => b.imdbRating - a.imdbRating)
+        .sort((a, b) => b.imdb_rating - a.imdb_rating)
         .slice(0, 4);
     });
     return top;
   }, [genreCategories]);
 
+  if (loading) return <LoadingSpinner />;
+  if (error) return <div>Error: {error}</div>;
+
   return (
     <div className="home-container">
       <Carousel className="movie-carousel">
         {topMovies.map((movie) => (
-          <Carousel.Item key={movie.imdbID}>
+          <Carousel.Item key={movie.id}>
             <img
               className="d-block w-100"
-              src={movie.Images[1]}
-              alt={movie.Title}
+              src={movie.images && movie.images[1] ? movie.images[1] : movie.image_url}
+              alt={movie.title}
               style={{ objectFit: 'cover', height: '70vh' }}
             />
             <Carousel.Caption className="text-white p-5 fw-bold fs-2 bg-opacity-50 rounded p-3">
-              <h3>{movie.Title}</h3>
-              <p>IMDb Rating: {movie.imdbRating}</p>
-              <Link to={`/movie/${movie.imdbID}`} className="btn btn-primary mt-auto">
+              <h3>{movie.title}</h3>
+              <p>IMDb Rating: {movie.imdb_rating}</p>
+              <Link to={`/movies/${movie.id}`} className="btn btn-primary mt-auto">
                 View Details
               </Link>
             </Carousel.Caption>
@@ -69,13 +74,13 @@ function Home() {
             <h2 className="mb-3">{genre} Movies</h2>
             <div className="row">
               {topGenreMovies[genre].map(movie => (
-                <div key={movie.imdbID} className="col-md-3 mb-3">
+                <div key={movie.id} className="col-md-3 mb-3">
                   <div className="card h-100 shadow-sm">
-                    <img src={movie.Images[0]} className="card-img-top" alt={movie.Title} style={{ height: '300px', objectFit: 'cover' }} />
+                    <img src={movie.images[0] || movie.image_url} className="card-img-top" alt={movie.title} style={{ height: '300px', objectFit: 'cover' }} />
                     <div className="card-body d-flex flex-column">
-                      <h5 className="card-title">{movie.Title}</h5>
-                      <p className="card-text">IMDb Rating: {movie.imdbRating}</p>
-                      <Link to={`/movie/${movie.imdbID}`} className="btn btn-primary mt-auto">
+                      <h5 className="card-title">{movie.title}</h5>
+                      <p className="card-text">IMDb Rating: {movie.imdb_rating}</p>
+                      <Link to={`/movies/${movie.id}`} className="btn btn-primary mt-auto">
                         View Details
                       </Link>
                     </div>

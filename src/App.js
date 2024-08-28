@@ -11,6 +11,7 @@ import GenrePage from './components/GenrePage';
 import Login from './components/login';
 import Signup from './components/signup';
 import './App.css';
+import MovieForm from './components/MovieForm';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
         <main className="flex-grow-1">
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path='/addmovie' element={<MovieForm />} />
             <Route path="/movies" element={<MovieList />} />
             <Route path="/movies/:id" element={<MovieDetails />} />
             <Route path="/seating/:id" element={<TheaterSeating />} />

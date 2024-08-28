@@ -1,24 +1,37 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import movieData from '../data/movies.json';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import useMovies from '../hooks/useMovies';
+import LoadingSpinner from './LoadingSpinner';
 
 const ROWS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
 const SEATS_PER_ROW = 10;
 const SEAT_PRICE = 10;
 
-function TheaterSeating({ movieId, selectedShowtime }) {
+function TheaterSeating() {
   const navigate = useNavigate();
+  const { id } = useParams();
+  const location = useLocation();
+  const { movies, loading, error } = useMovies();
   const [movie, setMovie] = useState(null);
   const [selectedSeats, setSelectedSeats] = useState([]);
+  const selectedShowtime = location.state?.selectedShowtime;
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const foundMovie = movieData.find(m => m.imdbID === movieId);
-    if (foundMovie) {
-      setMovie(foundMovie);
-    } else {
-      navigate('/');
-    }
-  }, [movieId, navigate]);
+    const fetchData = async () => {
+      if (!loading && !error) {
+        const foundMovie = movies.find(m => m.id === parseInt(id));
+        if (foundMovie) {
+          setMovie(foundMovie);
+        } else {
+          navigate('/');
+        }
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [id, navigate, movies, loading, error]);
 
   const handleSeatClick = (row, seat) => {
     const seatId = `${row}${seat}`;
@@ -51,14 +64,18 @@ function TheaterSeating({ movieId, selectedShowtime }) {
   };
 
   const handleContinue = () => {
-    navigate(`/booking/${movieId}`, { state: { selectedSeats, selectedShowtime } });
+    navigate(`/booking/${id}`, { state: { selectedSeats, selectedShowtime } });
   };
 
-  if (!movie) return <div>Loading...</div>;
+  if (isLoading) {
+    return <LoadingSpinner />;
+  }
+
+  if (!movie) return <div>Movie not found</div>;
 
   return (
     <div className="container mt-5">
-      <h2 className="text-center mb-4">{movie.Title} - Select Your Seats</h2>
+      <h2 className="text-center mb-4">{movie.title} - Select Your Seats</h2>
       <p className="text-center">Showtime: {selectedShowtime}</p>
       <div className="theater-container">
         <div className="screen mb-4">Screen</div>
